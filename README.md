@@ -10,7 +10,7 @@ Users can register and log in using WebAuthn credentials such as Touch ID, Face 
 - User authentication with WebAuthn.
 - PostgreSQL database for storing user and passkey data.
 - Prisma ORM for database interaction.
-- Axios for making API requests.
+- Fetch API for making API requests.
 
 ## Prerequisites
 
