@@ -134,7 +134,7 @@ export default function Home() {
 
     return (
         <div style={{ padding: '2rem' }}>
-            <h1>Usernameless, Passwordless Authentication</h1>
+            <h1>Iden2 Usernameless, Passwordless Authentication</h1>
             {message && <p>{message}</p>}
             <button onClick={handleRegister}>Register</button> &nbsp; &nbsp;
             <button onClick={handleLogin}>Login</button>
