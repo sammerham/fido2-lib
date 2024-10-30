@@ -88,7 +88,6 @@ export default async function handler(req, res) {
         if (!verification.audit.validRequest) {
             return res.status(400).json({ success: false, error: 'Authentication verification failed' });
         }
-
         const newCounter = verification.authnrData.counter;
         if (newCounter <= credential.counter) {
             return res.status(403).json({

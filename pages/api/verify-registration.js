@@ -43,7 +43,6 @@ export default async function handler(req, res) {
         if (!verification || !verification.authnrData || !verification.clientData) {
             throw new Error('Verification failed: required data missing.');
         }
-        console.log("verification--->", verification);
 
         // Verification successful: Create user and credential in the database
         const credentialId = Buffer.from(verification.authnrData.get('credId')).toString('base64url');

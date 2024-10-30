@@ -1,36 +1,136 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WebAuthn Next.js Project
 
-## Getting Started
+This project implements (Usernameless-Passwordless) for user registration/authentication using (Fido2-Lib - WebAuthn Native Api and Credential Management Api): it is implemented using Next.js, Prisma, and PostgreSQL. 
+Users can register and log in using WebAuthn credentials such as Touch ID, Face ID, or security keys.
 
-First, run the development server:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Features
+
+- User registration with WebAuthn.
+- User authentication with WebAuthn.
+- PostgreSQL database for storing user and passkey data.
+- Prisma ORM for database interaction.
+- Axios for making API requests.
+
+## Prerequisites
+
+Before you begin, ensure you have met the following requirements:
+
+- Node.js and npm installed.
+- PostgreSQL installed and running.
+- Prisma installed (`npm install prisma --save-dev`).
+
+## Installation
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/sammerham/fido2-lib.git
+   
+2. **Navigate to the project directory:**
+
+``` bash
+cd fido2-lib
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. **Install dependencies:**
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+``` bash
+npm install
+```
+4. **Set up the environment variables:**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4.1 **Create a .env file in the root directory and add your PostgreSQL database URL:**
+DATABASE_URL=postgresql://USERNAME:PASSWORD@localhost:5432/yourdatabasename?schema=public"
+JWT_SECRET =""
+RP_ID = 'localhost'
+EXPECTED_ORIGIN = 'http://localhost:3000'
+NODE_ENV = 'development'
+**Replace USERNAME, PASSWORD, and localhost:5432 with your actual PostgreSQL credentials.**
 
-## Learn More
+5. **Setting Up the Database**
+Initialize Prisma:
 
-To learn more about Next.js, take a look at the following resources:
+Run the following command to:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+initialize Prisma
+```bash
+npx prisma init
+```
+Generate Prisma Client:
+```bash
+npx prisma generate
+```
+7- Migrate the database:
+``` bash
+npx prisma migrate dev --name init
+```
+Optional: View database with Prisma Studio
+You can open Prisma Studio to inspect your database:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npx prisma studio
+``` 
 
-## Deploy on Vercel
+8- **Running the Application**
+To start the development server, run:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+``` bash
+npm run dev
+```
+**The application will be available at http://localhost:3000.**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+9- **API Endpoints**
+POST /api/generate-registration-options: Initializes WebAuthn registration for a given email.
+POST /api/verify-registration: Verifies the WebAuthn registration and stores the passkey in the database.
+POST /api/generate-authentication-options: Initializes WebAuthn authentication for a given email.
+POST /api/verify-authentication: Verifies the WebAuthn authentication response.
+
+10 - **Project Structure**
+pages/
+index.js: Home page with navigation links.
+register.js: WebAuthn registration page.
+login.js: WebAuthn login page.
+api/: Contains API routes for WebAuthn registration and authentication.
+prisma/
+schema.prisma: Defines the User and PassKey models.
+styles/: Global and modular CSS styles.
+Prisma Schema
+Here is an example of the Prisma schema used in this project:
+
+11 - **prisma**
+
+model User {
+  id                  String                  @id 
+  webauthnCredentials WebauthnCredential[]
+  didKeys             DidKey[]
+  createdAt           DateTime                @default(now())
+  lastUsed            DateTime
+}
+
+model WebauthnCredential {
+  id             String     @id 
+  userId         String
+  credId         String     @unique
+  credPublicKey  String
+  counter        Int        // Field for storing counter
+  deviceType     String
+  backEligible   Boolean
+  backStatus     Boolean
+  createdAt      DateTime   @default(now())
+  lastUsed       DateTime
+  user           User       @relation(fields: [userId], references: [id])
+}
+
+model DidKey {
+  id             String     @id 
+  userId         String
+  publicKey      String
+  createdAt      DateTime   @default(now())
+  lastUsed       DateTime
+  user           User       @relation(fields: [userId], references: [id])
+}
+
+
+License
+This project is licensed under the MIT License - see the LICENSE file for details.
