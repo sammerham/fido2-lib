@@ -1,4 +1,3 @@
-import { Fido2Lib } from 'fido2-lib';
 import { setCookie } from '../../lib/cookies';
 import { signJwtToken } from '../../lib/jwt';
 import { nanoid } from 'nanoid';

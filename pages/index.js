@@ -3,8 +3,11 @@ import { useState } from 'react';
 export default function Home() {
     const [message, setMessage] = useState('');
 
-    // Helper function to decode base64 URL to Uint8Array
     function base64UrlToUint8Array(base64Url) {
+        if (typeof base64Url !== 'string') {
+            console.error('Expected base64Url to be a string but got:', typeof base64Url);
+            return new Uint8Array();
+        }
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const raw = atob(base64);
         const outputArray = new Uint8Array(raw.length);
@@ -14,7 +17,12 @@ export default function Home() {
         return outputArray;
     }
 
-    // Check if a credential already exists using the Credential Management API
+    // Helper function to encode ArrayBuffer to base64url
+    function toBase64Url(buffer) {
+        return btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
     const checkIfRegistered = async () => {
         try {
             const credential = await navigator.credentials.get({
@@ -36,7 +44,6 @@ export default function Home() {
         }
     };
 
-    // Main registration handler
     const handleRegister = async () => {
         let publicKeyCredential;
         try {
@@ -76,25 +83,61 @@ export default function Home() {
             if (verificationResult.success) {
                 setMessage('Registration successful!');
             } else {
-                // Verification failed - inform the user about manual deletion
                 setMessage('Registration verification failed. Please manually delete any passkey from your device settings.');
             }
         } catch (error) {
-            // Explicit message for manual deletion if an error occurs
             console.error('Registration error:', error);
-            if (publicKeyCredential) {
-                setMessage('Registration failed. Please manually delete any unverified passkey from your device settings.');
-            } else {
-                setMessage(`Error: ${error.message}`);
+            setMessage(`Error: ${error.message}`);
+        }
+    };
+
+    const handleLogin = async () => {
+        try {
+            const optionsResponse = await fetch('/api/generate-authentication-options', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (!optionsResponse.ok) {
+                throw new Error('Failed to fetch authentication options.');
             }
+
+            const options = await optionsResponse.json();
+            options.challenge = base64UrlToUint8Array(options.challenge).buffer;
+            const assertion = await navigator.credentials.get({
+                publicKey: options,
+            });
+            const verificationResponse = await fetch('/api/verify-authentication', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: assertion.id,
+                    rawId: Array.from(new Uint8Array(assertion.rawId)),
+                    clientDataJSON: Array.from(new Uint8Array(assertion.response.clientDataJSON)),
+                    authenticatorData: Array.from(new Uint8Array(assertion.response.authenticatorData)),
+                    signature: Array.from(new Uint8Array(assertion.response.signature)),
+                    userHandle: assertion.response.userHandle ?  new Uint8Array(assertion.response.userHandle) : null,
+                }),
+            });
+
+            const verificationResult = await verificationResponse.json();
+            if (verificationResult.success) {
+                setMessage('Login successful!');
+            } else {
+                setMessage('Login failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            setMessage(`Error during login: ${error.message}`);
         }
     };
 
     return (
         <div style={{ padding: '2rem' }}>
-            <h1>Usernameless, Passwordless Registration</h1>
+            <h1>Usernameless, Passwordless Authentication</h1>
             {message && <p>{message}</p>}
-            <button onClick={handleRegister}>Register</button>
+            <button onClick={handleRegister}>Register</button> &nbsp; &nbsp;
+            <button onClick={handleLogin}>Login</button>
         </div>
     );
 }
