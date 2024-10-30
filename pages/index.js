@@ -127,8 +127,12 @@ export default function Home() {
                 setMessage('Login failed. Please try again.');
             }
         } catch (error) {
-            console.error('Login error:', error);
-            setMessage(`Error during login: ${error.message}`);
+            if (error.name === "NotAllowedError") {
+                setMessage("No passkey found. You are not registered. Please register.");
+            } else {
+                console.error('Login error:', error);
+                setMessage(`Error during login: ${error.message}`);
+            }
         }
     };
 
