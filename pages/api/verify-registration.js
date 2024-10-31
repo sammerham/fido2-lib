@@ -47,6 +47,7 @@ export default async function handler(req, res) {
         // Verification successful: Create user and credential in the database
         const credentialId = Buffer.from(verification.authnrData.get('credId')).toString('base64url');
         const publicKeyBase64URL = Buffer.from(verification.authnrData.get('credentialPublicKeyCose')).toString('base64url');
+        const initialCounter = verification.authnrData.get('counter') || 0; // Default to 0 if undefined
 
         await prisma.user.create({
             data:{
@@ -58,12 +59,13 @@ export default async function handler(req, res) {
                         id: nanoid(), 
                         credId: credentialId,
                         credPublicKey: publicKeyBase64URL, 
-                        counter: verification.authnrData.get('counter'),
+                        counter: initialCounter,
                         deviceType: 'platform', 
                         backEligible: false, 
                         backStatus: false, 
                         createdAt: new Date(),
                         lastUsed: new Date(),
+                        loginCounter: 1
                     },
                 },
             },

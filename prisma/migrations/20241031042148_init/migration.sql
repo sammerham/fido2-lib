@@ -19,6 +19,7 @@ CREATE TABLE "WebauthnCredential" (
     "backStatus" BOOLEAN NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lastUsed" TIMESTAMP(3) NOT NULL,
+    "loginCounter" INTEGER NOT NULL,
 
     CONSTRAINT "WebauthnCredential_pkey" PRIMARY KEY ("id")
 );

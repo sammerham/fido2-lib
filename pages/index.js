@@ -67,7 +67,7 @@ export default function Home() {
             options.user.id = base64UrlToUint8Array(options.user.id).buffer;
 
             publicKeyCredential = await navigator.credentials.create({ publicKey: options });
-
+         
             const verificationResponse = await fetch('/api/verify-registration', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

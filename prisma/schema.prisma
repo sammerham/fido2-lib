@@ -32,6 +32,7 @@ model WebauthnCredential {
   backStatus     Boolean
   createdAt      DateTime   @default(now())
   lastUsed       DateTime
+  loginCounter   Int
   user           User       @relation(fields: [userId], references: [id])
 }
 
