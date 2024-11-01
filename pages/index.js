@@ -1,7 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+
 
 export default function Home() {
     const [message, setMessage] = useState('');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const router = useRouter(); // Initialize the router
 
     function base64UrlToUint8Array(base64Url) {
         if (typeof base64Url !== 'string') {
@@ -17,11 +21,18 @@ export default function Home() {
         return outputArray;
     }
 
-    // Helper function to encode ArrayBuffer to base64url
-    function toBase64Url(buffer) {
-        return btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)))
-            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    }
+    // // Helper function to encode ArrayBuffer to base64url
+    // function toBase64Url(buffer) {
+    //     return btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)))
+    //         .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    // }
+
+    useEffect(() => {
+        if (message) {
+            const timer = setTimeout(() => setMessage(''), 3000); // Clear message after 3 seconds
+            return () => clearTimeout(timer); // Cleanup on unmount or if message changes
+        }
+    }, [message]);
 
     const checkIfRegistered = async () => {
         try {
@@ -82,6 +93,7 @@ export default function Home() {
             const verificationResult = await verificationResponse.json();
             if (verificationResult.success) {
                 setMessage('Registration successful!');
+                setIsLoggedIn(true); // Automatically set the user as logged in after successful registration
             } else {
                 setMessage('Registration verification failed. Please manually delete any passkey from your device settings.');
             }
@@ -123,6 +135,7 @@ export default function Home() {
             const verificationResult = await verificationResponse.json();
             if (verificationResult.success) {
                 setMessage('Login successful!');
+                setIsLoggedIn(true); // Set isLoggedIn to true after successful login
             } else {
                 setMessage('Login failed. Please try again.');
             }
@@ -136,12 +149,37 @@ export default function Home() {
         }
     };
 
+    const handleLogout = async () => {
+        try {
+            const response = await fetch('/api/logout', { method: 'POST' });
+            const result = await response.json();
+            if (result.success) {
+                setIsLoggedIn(false); // Set isLoggedIn to false after logout
+                setMessage(result.message);
+                // Use router.push to navigate without a hard refresh
+                router.push('/');
+            } else {
+                setMessage('Logout failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Logout error:', error);
+            setMessage(`Error during logout: ${error.message}`);
+        }
+    };
+
     return (
         <div style={{ padding: '2rem' }}>
             <h1>Iden2 Usernameless, Passwordless Authentication</h1>
+            {isLoggedIn ? (
+                <button onClick={handleLogout}>Logout</button>
+            ) : (
+                <>
+                    <button onClick={handleRegister}>Register</button>
+                    &nbsp;&nbsp;
+                    <button onClick={handleLogin}>Login</button>
+                </>
+            )}
             {message && <p>{message}</p>}
-            <button onClick={handleRegister}>Register</button> &nbsp; &nbsp;
-            <button onClick={handleLogin}>Login</button>
         </div>
     );
 }
