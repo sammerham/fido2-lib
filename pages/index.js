@@ -21,12 +21,6 @@ export default function Home() {
         return outputArray;
     }
 
-    // // Helper function to encode ArrayBuffer to base64url
-    // function toBase64Url(buffer) {
-    //     return btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)))
-    //         .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    // }
-
     useEffect(() => {
         if (message) {
             const timer = setTimeout(() => setMessage(''), 3000); // Clear message after 3 seconds
